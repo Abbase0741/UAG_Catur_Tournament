@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turnamen Catur - Sistem Gugur + Play-off</title>
+  <style>
+    :root {
+      --bg-color: #f9fafb;
+      --card-bg: #f4f6f0;
+      --border-color: #e5e7eb;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --banner-bg: #1c3026;
+      --accent-green: #86efac;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 24px;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    .header h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px 0; }
+    .header p { color: var(--text-muted); font-size: 14px; margin-top: 0; }
+
+    /* Control & Stats Grid */
+    .controls { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+    .controls input { padding: 8px 12px; font-size: 16px; width: 60px; border: 1px solid var(--border-color); border-radius: 6px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
+    .stat-card { background: var(--card-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); }
+    .stat-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; }
+    .stat-unit { font-size: 13px; font-weight: normal; color: var(--text-muted); }
+
+    /* Bracket Layout */
+    .bracket-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
+    .round-title { font-weight: 700; margin-bottom: 4px; }
+    .round-sub { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 16px; }
+
+    .match-box { background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .match-title { font-size: 12px; font-weight: bold; color: var(--text-muted); margin-bottom: 8px; }
+    
+    .player-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f3f4f6; }
+    .player-row:last-child { border-bottom: none; }
+    .btn-win { background: #f3f4f6; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .btn-win:hover { background: #e5e7eb; }
+    .btn-win.active { background: #10b981; color: white; }
+
+    /* Footer Play-off */
+    .playoff-section { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; background: var(--banner-bg); color: #fff; padding: 20px; border-radius: 12px; margin-top: 30px; }
+    .playoff-banner h3 { color: var(--accent-green); margin: 0; font-size: 14px; }
+    .playoff-banner h2 { margin: 4px 0; font-size: 20px; }
+    .playoff-card { background: #fff; color: var(--text-main); padding: 16px; border-radius: 8px; }
+  </style>
+
+  <!-- Firebase Integration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Ganti konfigurasi ini dengan Firebase Config kamu
+    const firebaseConfig = {
+      apiKey: "API_KEY_KAMU",
+      authDomain: "PROJECT_ID_KAMU.firebaseapp.com",
+      databaseURL: "https://PROJECT_ID_KAMU-default-rtdb.firebaseio.com",
+      projectId: "PROJECT_ID_KAMU",
+      storageBucket: "PROJECT_ID_KAMU.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // State Turnamen
+    let tournamentData = {
+      playerCount: 7,
+      winners: {}
+    };
+
+    const dbRef = ref(db, 'tournament/state');
+
+    // Menerima data realtime dari Firebase
+    onValue(dbRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        tournamentData = data;
+        document.getElementById('numPlayers').value = tournamentData.playerCount;
+        renderApp();
+      }
+    });
+
+    // Simpan data ke Firebase
+    window.updateWinner = (matchId, winnerName) => {
+      if(!tournamentData.winners) tournamentData.winners = {};
+      tournamentData.winners[matchId] = winnerName;
+      set(dbRef, tournamentData);
+    };
+
+    window.changePlayerCount = (val) => {
+      tournamentData.playerCount = parseInt(val);
+      tournamentData.winners = {}; // Reset jika jumlah berubah
+      set(dbRef, tournamentData);
+    };
+
+    function renderApp() {
+      const n = tournamentData.playerCount;
+      const bracketSize = Math.pow(2, Math.ceil(Math.log2(n < 4 ? 4 : n)));
+      const byes = bracketSize - n;
+      
+      document.getElementById('stat-players').innerText = n;
+      document.getElementById('stat-byes').innerText = byes;
+      document.getElementById('stat-laga').innerText = n - (bracketSize / 2);
+      document.getElementById('stat-total').innerText = n;
+
+      // Render Bagan Perempat Final
+      let qfHTML = '';
+      for(let i = 0; i < bracketSize/2; i++) {
+        let p1 = `Pemain ${(i*2)+1}`;
+        let p2 = (i*2)+2 > n ? "Bye" : `Pemain ${(i*2)+2}`;
+        let matchId = `QF${i+1}`;
+        let currentWinner = tournamentData.winners ? tournamentData.winners[matchId] : null;
+
+        qfHTML += `
+          <div class="match-box">
+            <div class="match-title">${matchId}</div>
+            <div class="player-row">
+              <span>${p1}</span>
+              ${p2 !== "Bye" ? `<button class="btn-win ${currentWinner===p1?'active':''}" onclick="updateWinner('${matchId}', '${p1}')">Lolos</button>` : ''}
+            </div>
+            <div class="player-row">
+              <span>${p2}</span>
+              ${p2 === "Bye" ? '<small style="color:gray">Lolos Otomatis</small>' : `<button class="btn-win ${currentWinner===p2?'active':''}" onclick="updateWinner('${matchId}', '${p2}')">Lolos</button>`}
+            </div>
+          </div>`;
+      }
+      document.getElementById('qf-container').innerHTML = qfHTML;
+    }
+
+    document.getElementById('numPlayers').addEventListener('change', (e) => {
+      changePlayerCount(e.target.value);
+    });
+  </script>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>Sistem gugur + play-off</h1>
+      <p>Atur 2–30 peserta. Untuk 4 pemain atau lebih, yang kalah di semifinal bertemu dalam play-off tempat ketiga.</p>
+    </div>
+
+    <div class="controls">
+      <label>Jumlah Peserta:</label>
+      <input type="number" id="numPlayers" min="2" max="30" value="7">
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Jumlah Peserta</div>
+        <div class="stat-value"><span id="stat-players">7</span> <span class="stat-unit">pemain</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Lolos Otomatis</div>
+        <div class="stat-value"><span id="stat-byes">1</span> <span class="stat-unit">bye</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Laga Babak Awal</div>
+        <div class="stat-value"><span id="stat-laga">3</span> <span class="stat-unit">partai</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Total Pertandingan</div>
+        <div class="stat-value"><span id="stat-total">7</span> <span class="stat-unit">termasuk play-off</span></div>
+      </div>
+    </div>
+
+    <div class="bracket-container">
+      <div>
+        <div class="round-title">01. Perempat final</div>
+        <div class="round-sub">Bagan Utama</div>
+        <div id="qf-container"></div>
+      </div>
+      <div>
+        <div class="round-title">02. Semifinal</div>
+        <div class="round-sub">4 Pemain</div>
+        <div id="sf-container"><p style="color:gray; font-size:12px;">Pilih pemenang QF terlebih dahulu...</p></div>
+      </div>
+      <div>
+        <div class="round-title">03. Final</div>
+        <div class="round-sub">Perebutan Juara</div>
+        <div id="final-container"><p style="color:gray; font-size:12px;">Menunggu hasil semifinal...</p></div>
+      </div>
+    </div>
+
+    <div class="playoff-section">
+      <div class="playoff-banner">
+        <h3>↗ PERTANDINGAN TAMBAHAN</h3>
+        <h2>Play-off tempat ketiga</h2>
+        <p style="font-size: 12px; margin:0; color:#d1d5db;">Dua pemain yang kalah di semifinal memperebutkan posisi 3.</p>
+      </div>
+      <div class="playoff-card">
+        <div style="font-size:12px; font-weight:bold; color:gray;">PEREBUTAN POSISI 3</div>
+        <p style="font-size:13px; margin:10px 0 0 0;">Menunggu semifinal selesai</p>
+      </div>
+      <div class="playoff-card">
+        <div style="font-size:12px; font-weight:bold; color:gray;">HASIL AKHIR</div>
+        <h3 style="margin: 5px 0;">Juara 3</h3>
+        <small style="color:gray">Menunggu hasil play-off</small>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
