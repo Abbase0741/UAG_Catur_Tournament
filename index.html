@@ -3,61 +3,358 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Turnamen Catur - Sistem Gugur + Play-off</title>
+  <title>Sistem Gugur + Play-off Catur</title>
   <style>
     :root {
-      --bg-color: #f9fafb;
-      --card-bg: #f4f6f0;
-      --border-color: #e5e7eb;
-      --text-main: #111827;
+      --bg-color: #f7f9f6;
+      --card-bg: #f2f5ee;
+      --border-color: #e2e7df;
+      --text-main: #141a15;
       --text-muted: #6b7280;
-      --banner-bg: #1c3026;
-      --accent-green: #86efac;
+      --dark-banner: #1c3026;
+      --green-accent: #34d399;
+      --green-text: #a7f3d0;
+      --border-radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-color);
+      background-color: #ffffff;
       color: var(--text-main);
       margin: 0;
-      padding: 24px;
+      padding: 30px;
     }
 
-    .container { max-width: 1200px; margin: 0 auto; }
-    
-    .header h1 { font-size: 28px; font-weight: 800; margin: 0 0 6px 0; }
-    .header p { color: var(--text-muted); font-size: 14px; margin-top: 0; }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-    /* Control & Stats Grid */
-    .controls { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
-    .controls input { padding: 8px 12px; font-size: 16px; width: 60px; border: 1px solid var(--border-color); border-radius: 6px; }
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
-    .stat-card { background: var(--card-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); }
-    .stat-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; }
-    .stat-unit { font-size: 13px; font-weight: normal; color: var(--text-muted); }
+    /* Top Bar Header */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
 
-    /* Bracket Layout */
-    .bracket-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
-    .round-title { font-weight: 700; margin-bottom: 4px; }
-    .round-sub { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 16px; }
+    .title-section h1 {
+      font-size: 36px;
+      font-weight: 800;
+      margin: 0 0 6px 0;
+      letter-spacing: -0.5px;
+    }
 
-    .match-box { background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-    .match-title { font-size: 12px; font-weight: bold; color: var(--text-muted); margin-bottom: 8px; }
-    
-    .player-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f3f4f6; }
-    .player-row:last-child { border-bottom: none; }
-    .btn-win { background: #f3f4f6; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-    .btn-win:hover { background: #e5e7eb; }
-    .btn-win.active { background: #10b981; color: white; }
+    .title-section h1 span {
+      color: #8da38f;
+      font-weight: 400;
+    }
 
-    /* Footer Play-off */
-    .playoff-section { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; background: var(--banner-bg); color: #fff; padding: 20px; border-radius: 12px; margin-top: 30px; }
-    .playoff-banner h3 { color: var(--accent-green); margin: 0; font-size: 14px; }
-    .playoff-banner h2 { margin: 4px 0; font-size: 20px; }
-    .playoff-card { background: #fff; color: var(--text-main); padding: 16px; border-radius: 8px; }
+    .title-section p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    /* Counter Control Top-Right */
+    .player-counter {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: var(--border-radius);
+      padding: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .counter-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      font-weight: bold;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      color: #374151;
+      border-radius: 4px;
+    }
+
+    .counter-btn:hover {
+      background: #f3f4f6;
+    }
+
+    .counter-value {
+      text-align: center;
+      padding: 0 12px;
+    }
+
+    .counter-value .num {
+      font-weight: 800;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .counter-value .label {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 16px 20px;
+    }
+
+    .stat-title {
+      font-size: 10px;
+      font-weight: 800;
+      color: #556056;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-unit {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    /* Main Bracket Area */
+    .bracket-section {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      background: #ffffff;
+    }
+
+    .bracket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .bracket-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .bracket-subtitle-main {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 2px 0 6px 0;
+    }
+
+    .bracket-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .bracket-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      position: relative;
+    }
+
+    .col-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .col-number {
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    .col-title {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .col-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Match Box UI */
+    .match-box {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: #ffffff;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .match-header {
+      background: #fafafa;
+      padding: 6px 12px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-muted);
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid #f4f4f4;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .player-row:last-child {
+      border-bottom: none;
+    }
+
+    .player-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .player-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #d1d5db;
+    }
+
+    .player-row.winner .player-dot {
+      background: #10b981;
+    }
+
+    .btn-lolos {
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-lolos:hover {
+      background: #f3f4f6;
+    }
+
+    .btn-lolos.active {
+      background: #10b981;
+      color: #ffffff;
+      border-color: #10b981;
+    }
+
+    /* Play-off Bottom Banner */
+    .playoff-banner {
+      background-color: var(--dark-banner);
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .playoff-info {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .playoff-icon {
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .playoff-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--green-accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .playoff-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .playoff-desc {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .playoff-card {
+      background: #ffffff;
+      color: var(--text-main);
+      border-radius: 8px;
+      padding: 16px;
+      height: 100%;
+    }
+
+    .playoff-card-title {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .winner-highlight {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
   </style>
-
   <!-- Firebase Integration -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -75,145 +372,281 @@
       measurementId: "G-RREPTEP1K5"
     };
 
-    const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const dbRef = ref(db, 'chess_tournament/state');
 
-    // State Turnamen
-    let tournamentData = {
+    let state = {
       playerCount: 7,
       winners: {}
     };
 
-    const dbRef = ref(db, 'tournament/state');
-
-    // Menerima data realtime dari Firebase
     onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        tournamentData = data;
-        document.getElementById('numPlayers').value = tournamentData.playerCount;
-        renderApp();
+        state = data;
+        if (!state.winners) state.winners = {};
       }
+      render();
     });
 
-    // Simpan data ke Firebase
-    window.updateWinner = (matchId, winnerName) => {
-      if(!tournamentData.winners) tournamentData.winners = {};
-      tournamentData.winners[matchId] = winnerName;
-      set(dbRef, tournamentData);
+    window.setWinner = (matchId, playerName) => {
+      if (state.winners[matchId] === playerName) {
+        delete state.winners[matchId];
+      } else {
+        state.winners[matchId] = playerName;
+      }
+      set(dbRef, state);
     };
 
-    window.changePlayerCount = (val) => {
-      tournamentData.playerCount = parseInt(val);
-      tournamentData.winners = {}; // Reset jika jumlah berubah
-      set(dbRef, tournamentData);
+    window.adjustPlayers = (delta) => {
+      let newCount = state.playerCount + delta;
+      if (newCount < 2) newCount = 2;
+      if (newCount > 30) newCount = 30;
+      state.playerCount = newCount;
+      state.winners = {}; 
+      set(dbRef, state);
     };
 
-    function renderApp() {
-      const n = tournamentData.playerCount;
+    function render() {
+      const n = state.playerCount;
+      document.getElementById('player-count-display').innerText = n;
+      
       const bracketSize = Math.pow(2, Math.ceil(Math.log2(n < 4 ? 4 : n)));
       const byes = bracketSize - n;
-      
+      const lagaAwal = n - (bracketSize / 2);
+      const totalMatch = n;
+
       document.getElementById('stat-players').innerText = n;
       document.getElementById('stat-byes').innerText = byes;
-      document.getElementById('stat-laga').innerText = n - (bracketSize / 2);
-      document.getElementById('stat-total').innerText = n;
+      document.getElementById('stat-laga').innerText = lagaAwal;
+      document.getElementById('stat-total').innerText = totalMatch;
 
-      // Render Bagan Perempat Final
+      // QF Bracket Generator
       let qfHTML = '';
-      for(let i = 0; i < bracketSize/2; i++) {
-        let p1 = `Pemain ${(i*2)+1}`;
-        let p2 = (i*2)+2 > n ? "Bye" : `Pemain ${(i*2)+2}`;
+      let qfWinners = [];
+      
+      for (let i = 0; i < bracketSize / 2; i++) {
+        let p1 = `Pemain ${String((i * 2) + 1).padStart(2, '0')}`;
+        let p2 = (i * 2) + 2 > n ? "Bye" : `Pemain ${String((i * 2) + 2).padStart(2, '0')}`;
         let matchId = `QF${i+1}`;
-        let currentWinner = tournamentData.winners ? tournamentData.winners[matchId] : null;
+        let win = state.winners[matchId];
+
+        if (p2 === "Bye") {
+          win = p1;
+          state.winners[matchId] = p1;
+        }
+
+        qfWinners.push(win || `Pemenang ${matchId}`);
 
         qfHTML += `
           <div class="match-box">
-            <div class="match-title">${matchId}</div>
-            <div class="player-row">
-              <span>${p1}</span>
-              ${p2 !== "Bye" ? `<button class="btn-win ${currentWinner===p1?'active':''}" onclick="updateWinner('${matchId}', '${p1}')">Lolos</button>` : ''}
+            <div class="match-header"><span>${matchId}</span> ${p2 === 'Bye' ? '<span>BYE</span>' : ''}</div>
+            <div class="player-row ${win === p1 ? 'winner' : ''}">
+              <div class="player-name"><div class="player-dot"></div> ${p1}</div>
+              ${p2 !== "Bye" ? `<button class="btn-lolos ${win === p1 ? 'active' : ''}" onclick="setWinner('${matchId}', '${p1}')">Lolos</button>` : ''}
             </div>
-            <div class="player-row">
-              <span>${p2}</span>
-              ${p2 === "Bye" ? '<small style="color:gray">Lolos Otomatis</small>' : `<button class="btn-win ${currentWinner===p2?'active':''}" onclick="updateWinner('${matchId}', '${p2}')">Lolos</button>`}
+            <div class="player-row ${win === p2 ? 'winner' : ''}">
+              <div class="player-name"><div class="player-dot"></div> ${p2}</div>
+              ${p2 !== "Bye" ? `<button class="btn-lolos ${win === p2 ? 'active' : ''}" onclick="setWinner('${matchId}', '${p2}')">Lolos</button>` : ''}
             </div>
-          </div>`;
+          </div>
+        `;
       }
       document.getElementById('qf-container').innerHTML = qfHTML;
-    }
 
-    document.getElementById('numPlayers').addEventListener('change', (e) => {
-      changePlayerCount(e.target.value);
-    });
+      // SF Bracket Generator
+      let sfHTML = '';
+      let sfWinners = [];
+      let sfLosers = [];
+
+      for (let i = 0; i < 2; i++) {
+        let matchId = `SF${i+1}`;
+        let p1 = qfWinners[i*2] || `Pemenang QF${i*2+1}`;
+        let p2 = qfWinners[i*2+1] || `Pemenang QF${i*2+2}`;
+        let win = state.winners[matchId];
+
+        if (win) {
+          sfWinners.push(win);
+          sfLosers.push(win === p1 ? p2 : p1);
+        } else {
+          sfWinners.push(`Pemenang ${matchId}`);
+          sfLosers.push(`Kalah ${matchId}`);
+        }
+
+        let isReady = !p1.startsWith('Pemenang') && !p2.startsWith('Pemenang');
+
+        sfHTML += `
+          <div class="match-box">
+            <div class="match-header"><span>${matchId}</span></div>
+            <div class="player-row ${win === p1 ? 'winner' : ''}">
+              <div class="player-name"><div class="player-dot"></div> ${p1}</div>
+              ${isReady ? `<button class="btn-lolos ${win === p1 ? 'active' : ''}" onclick="setWinner('${matchId}', '${p1}')">Lolos</button>` : ''}
+            </div>
+            <div class="player-row ${win === p2 ? 'winner' : ''}">
+              <div class="player-name"><div class="player-dot"></div> ${p2}</div>
+              ${isReady ? `<button class="btn-lolos ${win === p2 ? 'active' : ''}" onclick="setWinner('${matchId}', '${p2}')">Lolos</button>` : ''}
+            </div>
+          </div>
+        `;
+      }
+      document.getElementById('sf-container').innerHTML = sfHTML;
+
+      // Final Bracket Generator
+      let fP1 = sfWinners[0];
+      let fP2 = sfWinners[1];
+      let fWin = state.winners['FINAL'];
+      let isFinalReady = !fP1.startsWith('Pemenang') && !fP2.startsWith('Pemenang');
+
+      document.getElementById('final-container').innerHTML = `
+        <div class="match-box">
+          <div class="match-header"><span>FINAL</span></div>
+          <div class="player-row ${fWin === fP1 ? 'winner' : ''}">
+            <div class="player-name"><div class="player-dot"></div> ${fP1}</div>
+            ${isFinalReady ? `<button class="btn-lolos ${fWin === fP1 ? 'active' : ''}" onclick="setWinner('FINAL', '${fP1}')">Juara</button>` : ''}
+          </div>
+          <div class="player-row ${fWin === fP2 ? 'winner' : ''}">
+            <div class="player-name"><div class="player-dot"></div> ${fP2}</div>
+            ${isFinalReady ? `<button class="btn-lolos ${fWin === fP2 ? 'active' : ''}" onclick="setWinner('FINAL', '${fP2}')">Juara</button>` : ''}
+          </div>
+        </div>
+      `;
+
+      // Play-off Tempat 3
+      let poP1 = sfLosers[0];
+      let poP2 = sfLosers[1];
+      let poWin = state.winners['PLAYOFF'];
+      let isPOReady = !poP1.startsWith('Kalah') && !poP2.startsWith('Kalah');
+
+      document.getElementById('playoff-container').innerHTML = `
+        <div class="player-row ${poWin === poP1 ? 'winner' : ''}">
+          <div class="player-name"><div class="player-dot"></div> ${poP1}</div>
+          ${isPOReady ? `<button class="btn-lolos ${poWin === poP1 ? 'active' : ''}" onclick="setWinner('PLAYOFF', '${poP1}')">Pemenang</button>` : ''}
+        </div>
+        <div class="player-row ${poWin === poP2 ? 'winner' : ''}">
+          <div class="player-name"><div class="player-dot"></div> ${poP2}</div>
+          ${isPOReady ? `<button class="btn-lolos ${poWin === poP2 ? 'active' : ''}" onclick="setWinner('PLAYOFF', '${poP2}')">Pemenang</button>` : ''}
+        </div>
+      `;
+
+      document.getElementById('playoff-winner-display').innerHTML = poWin 
+        ? `<div class="winner-highlight">Juara 3</div><div style="font-size:14px; font-weight:bold; margin-top:4px;">${poWin}</div>`
+        : `<div class="winner-highlight">Juara 3</div><div style="font-size:11px; color:gray; margin-top:4px;">menunggu hasil play-off</div>`;
+    }
   </script>
 </head>
 <body>
 
   <div class="container">
-    <div class="header">
-      <h1>Sistem gugur + play-off</h1>
-      <p>Atur 2–30 peserta. Untuk 4 pemain atau lebih, yang kalah di semifinal bertemu dalam play-off tempat ketiga.</p>
+    
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="title-section">
+        <h1>Sistem gugur <span>+ play-off</span></h1>
+        <p>Atur 2–30 peserta. Untuk 4 pemain atau lebih, yang kalah di semifinal bertemu dalam play-off tempat ketiga.</p>
+      </div>
+
+      <div class="player-counter">
+        <button class="counter-btn" onclick="adjustPlayers(-1)">−</button>
+        <div class="counter-value">
+          <div class="num" id="player-count-display">7</div>
+          <div class="label">Pemain</div>
+        </div>
+        <button class="counter-btn" onclick="adjustPlayers(1)">+</button>
+      </div>
     </div>
 
-    <div class="controls">
-      <label>Jumlah Peserta:</label>
-      <input type="number" id="numPlayers" min="2" max="30" value="7">
-    </div>
-
+    <!-- Stats Grid -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-title">Jumlah Peserta</div>
+        <div class="stat-title">JUMLAH PESERTA</div>
         <div class="stat-value"><span id="stat-players">7</span> <span class="stat-unit">pemain</span></div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">Lolos Otomatis</div>
+        <div class="stat-title">LOLOS OTOMATIS</div>
         <div class="stat-value"><span id="stat-byes">1</span> <span class="stat-unit">bye</span></div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">Laga Babak Awal</div>
+        <div class="stat-title">LAGA BABAK AWAL</div>
         <div class="stat-value"><span id="stat-laga">3</span> <span class="stat-unit">partai</span></div>
       </div>
       <div class="stat-card">
-        <div class="stat-title">Total Pertandingan</div>
+        <div class="stat-title">TOTAL PERTANDINGAN</div>
         <div class="stat-value"><span id="stat-total">7</span> <span class="stat-unit">termasuk play-off</span></div>
       </div>
     </div>
 
-    <div class="bracket-container">
-      <div>
-        <div class="round-title">01. Perempat final</div>
-        <div class="round-sub">Bagan Utama</div>
-        <div id="qf-container"></div>
+    <!-- Main Bracket Box -->
+    <div class="bracket-section">
+      <div class="bracket-header">
+        <div>
+          <div class="bracket-title">BAGAN UTAMA</div>
+          <div class="bracket-subtitle-main">Perjalanan ke final</div>
+        </div>
       </div>
-      <div>
-        <div class="round-title">02. Semifinal</div>
-        <div class="round-sub">4 Pemain</div>
-        <div id="sf-container"><p style="color:gray; font-size:12px;">Pilih pemenang QF terlebih dahulu...</p></div>
-      </div>
-      <div>
-        <div class="round-title">03. Final</div>
-        <div class="round-sub">Perebutan Juara</div>
-        <div id="final-container"><p style="color:gray; font-size:12px;">Menunggu hasil semifinal...</p></div>
+      <div class="bracket-desc">Klik tombol Lolos pada pemain yang menang untuk meneruskan ke babak selanjutnya.</div>
+
+      <div class="bracket-columns">
+        <!-- Col 1 -->
+        <div>
+          <div class="col-header">
+            <span class="col-number">01</span>
+            <div>
+              <div class="col-title">Perempat final</div>
+              <div class="col-sub">Bagan Utama</div>
+            </div>
+          </div>
+          <div id="qf-container"></div>
+        </div>
+
+        <!-- Col 2 -->
+        <div>
+          <div class="col-header">
+            <span class="col-number">02</span>
+            <div>
+              <div class="col-title">Semifinal</div>
+              <div class="col-sub">4 Pemain</div>
+            </div>
+          </div>
+          <div id="sf-container"></div>
+        </div>
+
+        <!-- Col 3 -->
+        <div>
+          <div class="col-header">
+            <span class="col-number">03</span>
+            <div>
+              <div class="col-title">Final</div>
+              <div class="col-sub">Perebutan Juara</div>
+            </div>
+          </div>
+          <div id="final-container"></div>
+        </div>
       </div>
     </div>
 
-    <div class="playoff-section">
-      <div class="playoff-banner">
-        <h3>↗ PERTANDINGAN TAMBAHAN</h3>
-        <h2>Play-off tempat ketiga</h2>
-        <p style="font-size: 12px; margin:0; color:#d1d5db;">Dua pemain yang kalah di semifinal memperebutkan posisi 3.</p>
+    <!-- Play-off Bottom Banner -->
+    <div class="playoff-banner">
+      <div class="playoff-info">
+        <div class="playoff-icon">↗</div>
+        <div>
+          <div class="playoff-tag">PERTANDINGAN TAMBAHAN</div>
+          <div class="playoff-title">Play-off tempat ketiga</div>
+          <div class="playoff-desc">Dua pemain yang kalah di semifinal memperebutkan posisi 3.</div>
+        </div>
       </div>
+
       <div class="playoff-card">
-        <div style="font-size:12px; font-weight:bold; color:gray;">PEREBUTAN POSISI 3</div>
-        <p style="font-size:13px; margin:10px 0 0 0;">Menunggu semifinal selesai</p>
+        <div class="playoff-card-title">PEREBUTAN POSISI 3</div>
+        <div id="playoff-container"></div>
       </div>
+
       <div class="playoff-card">
-        <div style="font-size:12px; font-weight:bold; color:gray;">HASIL AKHIR</div>
-        <h3 style="margin: 5px 0;">Juara 3</h3>
-        <small style="color:gray">Menunggu hasil play-off</small>
+        <div class="playoff-card-title">HASIL AKHIR</div>
+        <div id="playoff-winner-display"></div>
       </div>
     </div>
+
   </div>
 
 </body>
